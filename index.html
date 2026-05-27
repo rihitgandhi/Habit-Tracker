@@ -40,6 +40,7 @@
   .badge.cold .dot { background: #f87171; }
   @media (max-width: 900px) {
     .charts-grid { grid-template-columns: 1fr; }
+    .check-btn { height: 40px; }
   }
   @media (max-width: 700px) {
     .ht-wrap { border-radius: 12px; padding: 14px; min-height: auto; }
@@ -57,7 +58,6 @@
       position: sticky;
       left: 0;
       background: var(--ht-bg);
-      box-shadow: 1px 0 0 var(--ht-border-color);
       z-index: 1;
     }
     .habit-grid tr:hover td.habit-name { background: var(--ht-row-hover); }
@@ -67,7 +67,13 @@
     .stat-label { font-size: 10px; }
     .stat-val { font-size: 20px; }
     .chart-card { padding: 12px; }
-    .streak-badges { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+    .streak-badges {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: #333 #111;
+    }
     .badge { white-space: nowrap; }
   }
   @media (max-width: 420px) {
