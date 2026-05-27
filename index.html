@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
 <style>
+  :root { --ht-bg: #0f0f0f; --ht-border-color: #2a2a2a; --ht-row-hover: #151515; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     min-height: 100vh;
@@ -62,9 +63,49 @@
   .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
   .badge.cold .dot { background: #f87171; }
   @media (max-width: 900px) {
+    .charts-grid { grid-template-columns: 1fr; }
+    .check-btn { height: 40px; }
+  }
+  @media (max-width: 700px) {
+    .ht-wrap { border-radius: 12px; padding: 14px; min-height: auto; }
+    .ht-title { font-size: 18px; }
+    .ht-subtitle { margin-bottom: 14px; }
+    .month-nav { gap: 6px; margin-bottom: 14px; }
+    .month-nav button { min-width: 44px; min-height: 44px; padding: 0; font-size: 14px; }
+    .month-label { flex: 1; min-width: 0; font-size: 14px; }
+    .grid-wrap { margin: 0 -2px; border-radius: 10px; }
+    table.habit-grid { min-width: 560px; }
+    .habit-grid th.habit-col { min-width: 130px; padding-left: 6px; }
+    .habit-grid td.habit-name {
+      font-size: 11px;
+      padding: 0 6px;
+      position: sticky;
+      left: 0;
+      background: var(--ht-bg);
+      z-index: 1;
+    }
+    .habit-grid tr:hover td.habit-name { background: var(--ht-row-hover); }
+    .check-btn { height: 44px; font-size: 15px; }
+    .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
+    .stat-card { padding: 10px 12px; }
+    .stat-label { font-size: 10px; }
+    .stat-val { font-size: 20px; }
+    .chart-card { padding: 12px; }
+    .streak-badges {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: #333 #111;
+    }
+    .badge { white-space: nowrap; }
+  }
+  @media (max-width: 420px) {
     body { padding: 16px 10px; }
     .ht-wrap { padding: 16px; }
-    .charts-grid { grid-template-columns: 1fr; }
+    .ht-title { font-size: 17px; }
+    table.habit-grid { min-width: 520px; }
+    .habit-grid th { font-size: 9px; }
   }
 </style>
 </head>
@@ -168,7 +209,7 @@ function render() {
 
   for (let h = 0; h < HABITS.length; h++) {
     html += `<tr>`;
-    html += `<td class="habit-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COLORS[h]};margin-right:7px;vertical-align:1px;"></span>${HABITS[h]}</td>`;
+    html += `<td class="habit-name" role="rowheader"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COLORS[h]};margin-right:7px;vertical-align:1px;"></span>${HABITS[h]}</td>`;
     for (let d = 1; d <= days; d++) {
       const done = getChecked(y, m, d, h);
       const isTod = d === todayD;
