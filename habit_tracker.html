@@ -1,4 +1,9 @@
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Habit Tracker</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: transparent; }
@@ -39,6 +44,8 @@
   .badge.cold .dot { background: #f87171; }
   @media (max-width: 500px) { .charts-grid { grid-template-columns: 1fr; } }
 </style>
+</head>
+<body>
 
 <h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Habit tracker with daily check-ins and consistency charts</h2>
 
@@ -250,3 +257,5 @@ currentYear = now.getFullYear();
 currentMonth = now.getMonth();
 render();
 </script>
+</body>
+</html>
