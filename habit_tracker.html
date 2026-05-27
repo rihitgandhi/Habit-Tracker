@@ -1,0 +1,252 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: transparent; }
+  .ht-wrap { background: #0f0f0f; border-radius: 16px; padding: 20px; font-family: var(--font-sans, Arial, sans-serif); color: #e0e0e0; min-height: 400px; }
+  .ht-title { font-size: 20px; font-weight: 500; color: #fff; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .ht-subtitle { font-size: 12px; color: #666; margin-bottom: 18px; }
+  .month-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .month-nav button { background: #1e1e1e; border: 0.5px solid #333; color: #ccc; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .month-nav button:hover { background: #2a2a2a; }
+  .month-label { font-size: 15px; font-weight: 500; color: #fff; min-width: 120px; text-align: center; }
+  .grid-wrap { overflow-x: auto; }
+  table.habit-grid { border-collapse: collapse; width: 100%; min-width: 680px; }
+  .habit-grid th { font-size: 10px; color: #555; font-weight: 400; text-align: center; padding: 4px 2px; border-bottom: 0.5px solid #222; }
+  .habit-grid th.habit-col { text-align: left; padding-left: 8px; min-width: 160px; font-size: 11px; }
+  .habit-grid td { text-align: center; padding: 0; border: 0.5px solid #1a1a1a; }
+  .habit-grid td.habit-name { text-align: left; padding: 0 8px; font-size: 12px; color: #bbb; white-space: nowrap; border-right: 0.5px solid #2a2a2a; }
+  .habit-grid tr:hover td.habit-name { color: #fff; }
+  .habit-grid tr { border-bottom: 0.5px solid #1a1a1a; }
+  .check-btn { width: 100%; height: 28px; background: transparent; border: none; cursor: pointer; font-size: 13px; color: #333; transition: background 0.1s; }
+  .check-btn:hover { background: #1e1e1e; }
+  .check-btn.done { color: #4ade80; }
+  .check-btn.today { background: #1a2a1a; }
+  .day-num { font-size: 9px; display: block; color: #444; }
+  .pct-row td { font-size: 10px; color: #555; padding: 3px 2px; text-align: center; border-top: 0.5px solid #2a2a2a; }
+  .pct-bar-wrap { height: 3px; background: #222; margin: 2px 4px; border-radius: 2px; }
+  .pct-bar { height: 3px; border-radius: 2px; background: #4ade80; }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin: 18px 0; }
+  .stat-card { background: #1a1a1a; border-radius: 10px; padding: 12px 14px; border: 0.5px solid #2a2a2a; }
+  .stat-label { font-size: 11px; color: #555; margin-bottom: 4px; }
+  .stat-val { font-size: 22px; font-weight: 500; color: #fff; }
+  .stat-unit { font-size: 11px; color: #555; font-weight: 400; }
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .chart-card { background: #1a1a1a; border-radius: 12px; padding: 14px; border: 0.5px solid #2a2a2a; }
+  .chart-title { font-size: 12px; color: #888; margin-bottom: 10px; font-weight: 500; }
+  .streak-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .badge { background: #1a1a1a; border: 0.5px solid #2a2a2a; border-radius: 20px; padding: 4px 10px; font-size: 11px; color: #888; display: flex; align-items: center; gap: 5px; }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+  .badge.cold .dot { background: #f87171; }
+  @media (max-width: 500px) { .charts-grid { grid-template-columns: 1fr; } }
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Habit tracker with daily check-ins and consistency charts</h2>
+
+<div class="ht-wrap">
+  <div class="ht-title"><i class="ti ti-flame" aria-hidden="true" style="font-size:18px;margin-right:6px;color:#f97316;"></i>Habit Tracker</div>
+  <div class="ht-subtitle">Click a cell to check off a habit for that day</div>
+
+  <div class="month-nav">
+    <button onclick="changeMonth(-1)"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+    <span class="month-label" id="monthLabel"></span>
+    <button onclick="changeMonth(1)"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+  </div>
+
+  <div class="grid-wrap">
+    <table class="habit-grid" id="habitGrid" aria-label="Habit tracking grid"></table>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Daily completion %</div>
+      <div style="position:relative;height:130px;"><canvas id="barChart" role="img" aria-label="Bar chart showing daily completion percentage"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Habit consistency</div>
+      <div style="position:relative;height:130px;"><canvas id="donutChart" role="img" aria-label="Donut chart showing habit consistency percentages"></canvas></div>
+    </div>
+  </div>
+
+  <div class="streak-badges" id="streakBadges"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const HABITS = [
+  "Sleep 8 hours",
+  "Make my bed",
+  "Exercise",
+  "Read a book",
+  "Study",
+  "Eat good",
+  "< 1hr screen time"
+];
+
+const COLORS = ["#4ade80","#34d399","#22d3ee","#818cf8","#a78bfa","#fb923c","#f472b6"];
+
+let state = {};
+let currentYear, currentMonth;
+let barChartInst = null, donutChartInst = null;
+
+function monthKey(y, m) { return `${y}-${m}`; }
+function dayKey(y, m, d) { return `${y}-${m}-${d}`; }
+
+function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+
+function getChecked(y, m, d, h) {
+  return !!(state[monthKey(y,m)] && state[monthKey(y,m)][dayKey(y,m,d)] && state[monthKey(y,m)][dayKey(y,m,d)][h]);
+}
+
+function toggleHabit(d, h) {
+  const mk = monthKey(currentYear, currentMonth);
+  const dk = dayKey(currentYear, currentMonth, d);
+  if (!state[mk]) state[mk] = {};
+  if (!state[mk][dk]) state[mk][dk] = {};
+  state[mk][dk][h] = !state[mk][dk][h];
+  render();
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  render();
+}
+
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+
+function render() {
+  const y = currentYear, m = currentMonth;
+  const days = daysInMonth(y, m);
+  const today = new Date();
+  const todayD = (today.getFullYear() === y && today.getMonth() === m) ? today.getDate() : -1;
+
+  document.getElementById("monthLabel").textContent = `${MONTH_NAMES[m]} ${y}`;
+
+  // Build grid
+  const table = document.getElementById("habitGrid");
+  let html = "<thead><tr><th class='habit-col'>Habit</th>";
+  for (let d = 1; d <= days; d++) {
+    const dow = DOW[new Date(y, m, d).getDay()];
+    const isTod = d === todayD;
+    html += `<th style="${isTod ? 'color:#4ade80;' : ''}">${dow}<br><span style="font-size:10px;">${d}</span></th>`;
+  }
+  html += "</tr></thead><tbody>";
+
+  for (let h = 0; h < HABITS.length; h++) {
+    html += `<tr>`;
+    html += `<td class="habit-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COLORS[h]};margin-right:7px;vertical-align:1px;"></span>${HABITS[h]}</td>`;
+    for (let d = 1; d <= days; d++) {
+      const done = getChecked(y, m, d, h);
+      const isTod = d === todayD;
+      html += `<td><button class="check-btn${done ? ' done' : ''}${isTod ? ' today' : ''}" onclick="toggleHabit(${d},${h})" aria-label="${done ? 'Uncheck' : 'Check'} ${HABITS[h]} for day ${d}">${done ? '✓' : '·'}</button></td>`;
+    }
+    html += "</tr>";
+  }
+
+  // Pct row
+  html += "<tr class='pct-row'><td class='habit-name' style='font-size:10px;color:#444;'>completion</td>";
+  for (let d = 1; d <= days; d++) {
+    let cnt = 0;
+    for (let h = 0; h < HABITS.length; h++) if (getChecked(y, m, d, h)) cnt++;
+    const pct = Math.round((cnt / HABITS.length) * 100);
+    html += `<td title="${pct}%"><div class="pct-bar-wrap"><div class="pct-bar" style="width:${pct}%"></div></div></td>`;
+  }
+  html += "</tr></tbody>";
+  table.innerHTML = html;
+
+  // Stats
+  let totalChecked = 0, activeDays = 0;
+  for (let d = 1; d <= days; d++) {
+    let dayCnt = 0;
+    for (let h = 0; h < HABITS.length; h++) if (getChecked(y, m, d, h)) { totalChecked++; dayCnt++; }
+    if (dayCnt > 0) activeDays++;
+  }
+  const totalPossible = days * HABITS.length;
+  const overallPct = totalPossible > 0 ? Math.round((totalChecked / totalPossible) * 100) : 0;
+
+  // Current streak
+  let streak = 0;
+  for (let d = todayD > 0 ? todayD : days; d >= 1; d--) {
+    let allDone = true;
+    for (let h = 0; h < HABITS.length; h++) if (!getChecked(y, m, d, h)) { allDone = false; break; }
+    if (allDone) streak++; else break;
+  }
+
+  document.getElementById("statsRow").innerHTML = `
+    <div class="stat-card"><div class="stat-label">Overall</div><div class="stat-val">${overallPct}<span class="stat-unit">%</span></div></div>
+    <div class="stat-card"><div class="stat-label">Checked</div><div class="stat-val">${totalChecked}<span class="stat-unit">/${totalPossible}</span></div></div>
+    <div class="stat-card"><div class="stat-label">Active days</div><div class="stat-val">${activeDays}<span class="stat-unit">/${days}</span></div></div>
+    <div class="stat-card"><div class="stat-label">Perfect streak</div><div class="stat-val">${streak}<span class="stat-unit"> day${streak !== 1 ? 's' : ''}</span></div></div>
+  `;
+
+  // Bar chart
+  const barLabels = [], barData = [];
+  for (let d = 1; d <= days; d++) {
+    let cnt = 0;
+    for (let h = 0; h < HABITS.length; h++) if (getChecked(y, m, d, h)) cnt++;
+    barLabels.push(d);
+    barData.push(Math.round((cnt / HABITS.length) * 100));
+  }
+
+  const barColors = barData.map(v => v >= 80 ? '#4ade80' : v >= 50 ? '#facc15' : v > 0 ? '#f97316' : '#1e1e1e');
+
+  if (barChartInst) barChartInst.destroy();
+  barChartInst = new Chart(document.getElementById("barChart"), {
+    type: 'bar',
+    data: { labels: barLabels, datasets: [{ data: barData, backgroundColor: barColors, borderRadius: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } } },
+      scales: {
+        x: { ticks: { color: '#444', font: { size: 9 }, autoSkip: true, maxTicksLimit: 15 }, grid: { color: '#1a1a1a' } },
+        y: { ticks: { color: '#444', font: { size: 9 }, callback: v => v + '%' }, grid: { color: '#1e1e1e' }, min: 0, max: 100 }
+      }
+    }
+  });
+
+  // Donut chart per habit
+  const donutData = HABITS.map((_, h) => {
+    let cnt = 0;
+    for (let d = 1; d <= days; d++) if (getChecked(y, m, d, h)) cnt++;
+    return Math.round((cnt / days) * 100);
+  });
+
+  if (donutChartInst) donutChartInst.destroy();
+  donutChartInst = new Chart(document.getElementById("donutChart"), {
+    type: 'doughnut',
+    data: {
+      labels: HABITS,
+      datasets: [{ data: donutData, backgroundColor: COLORS, borderColor: '#0f0f0f', borderWidth: 2, hoverBorderColor: '#0f0f0f' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed}%` } }
+      }
+    }
+  });
+
+  // Streak badges
+  const badgesEl = document.getElementById("streakBadges");
+  badgesEl.innerHTML = HABITS.map((name, h) => {
+    let s = 0;
+    for (let d = todayD > 0 ? todayD : days; d >= 1; d--) {
+      if (getChecked(y, m, d, h)) s++; else break;
+    }
+    const pct = donutData[h];
+    return `<div class="badge${pct < 30 ? ' cold' : ''}"><div class="dot" style="background:${COLORS[h]}"></div>${name}: ${s}d streak · ${pct}%</div>`;
+  }).join('');
+}
+
+// Init
+const now = new Date();
+currentYear = now.getFullYear();
+currentMonth = now.getMonth();
+render();
+</script>
