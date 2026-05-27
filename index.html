@@ -73,7 +73,6 @@
     .ht-title { font-size: 17px; }
     table.habit-grid { min-width: 520px; }
     .habit-grid th { font-size: 9px; }
-    .habit-grid td.habit-name { min-width: 120px; }
     .check-btn { height: 32px; }
   }
 </style>
@@ -176,7 +175,7 @@ function render() {
 
   for (let h = 0; h < HABITS.length; h++) {
     html += `<tr>`;
-    html += `<td class="habit-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COLORS[h]};margin-right:7px;vertical-align:1px;"></span>${HABITS[h]}</td>`;
+    html += `<td class="habit-name" role="rowheader"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COLORS[h]};margin-right:7px;vertical-align:1px;"></span>${HABITS[h]}</td>`;
     for (let d = 1; d <= days; d++) {
       const done = getChecked(y, m, d, h);
       const isTod = d === todayD;
