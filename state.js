@@ -19,9 +19,13 @@
   }
 
   function subscribe(onStateChange) {
-    window.addEventListener("storage", (event) => {
-      if (event.key === STORAGE_KEY) onStateChange(load());
-    });
+    const handler = (event) => {
+      if (event.key !== STORAGE_KEY || event.newValue === event.oldValue) return;
+      onStateChange(load());
+    };
+
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
   }
 
   global.HabitStateStorage = { STORAGE_KEY, load, save, subscribe };

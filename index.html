@@ -285,6 +285,7 @@ const now = new Date();
 currentYear = now.getFullYear();
 currentMonth = now.getMonth();
 HabitStateStorage.subscribe((latestState) => {
+  if (JSON.stringify(state) === JSON.stringify(latestState)) return;
   state = latestState;
   render();
 });
