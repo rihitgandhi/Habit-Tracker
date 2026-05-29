@@ -20,7 +20,7 @@
 
   function subscribe(onStateChange) {
     const handler = (event) => {
-      if (event.key !== STORAGE_KEY || event.newValue === event.oldValue) return;
+      if (event.key !== STORAGE_KEY) return;
       onStateChange(load());
     };
 
