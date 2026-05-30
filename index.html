@@ -103,6 +103,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="state.js"></script>
 <script>
 const HABITS = [
   "Sleep 8 hours",
@@ -116,28 +117,13 @@ const HABITS = [
 
 const COLORS = ["#4ade80","#34d399","#22d3ee","#818cf8","#a78bfa","#fb923c","#f472b6"];
 
-const STORAGE_KEY = "habit-tracker-state-v1";
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {}
-}
-
-let state = loadState();
+let state = HabitStateStorage.load();
 let currentYear, currentMonth;
 let barChartInst = null, donutChartInst = null;
+
+function saveState() {
+  HabitStateStorage.save(state);
+}
 
 function monthKey(y, m) { return `${y}-${m}`; }
 function dayKey(y, m, d) { return `${y}-${m}-${d}`; }
@@ -298,6 +284,10 @@ function render() {
 const now = new Date();
 currentYear = now.getFullYear();
 currentMonth = now.getMonth();
+HabitStateStorage.subscribe((latestState) => {
+  state = latestState;
+  render();
+});
 render();
 </script>
 
